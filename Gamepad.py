@@ -1,8 +1,11 @@
 import time
 from evdev import *
+import gobject
+
 class Gamepad:
     """docstring for Gamepad"""
     def __init__(self):
+        print "initializing gamepad"
         self.mapping = {}
         self.mapping['KEY_A'] = 0
         self.mapping['KEY_W'] = 1
@@ -44,14 +47,14 @@ class Gamepad:
         i = 0
         while True:
             try:
-		self.dev = InputDevice("/dev/input/event"+str(i))
-		if "keyboard" in str(self.dev):
+                self.dev = InputDevice("/dev/input/event"+str(i))
+                if "Das Keyboard" in str(self.dev):
                     break
             except Exception, e:
                 print "Keyboard not found."
                 break
-                i += 1
-		print "keyboard found "+str(self.dev)
+            i += 1
+        print "keyboard found "+str(self.dev)
 
     def change_state(self, event):
         evdev_code = ecodes.KEY[event.code]
@@ -67,3 +70,17 @@ class Gamepad:
                 self.change_state(event)
                 print self.state
                 bt.sendInput(self.state)
+
+    def register_keyboard_gobject_events(self, bt):
+        def keypress(fd, condition, ctx):
+            gamepad = ctx["gamepad"]
+            for event in gamepad.dev.read_loop():
+                if event.type == ecodes.EV_KEY and event.value < 2:
+                    gamepad.change_state(event)
+                    print gamepad.state
+                    ctx["bt"].sendInput(gamepad.state)
+
+        ctx = {'bt': bt, 'gamepad': self}
+        gobject.io_add_watch(self.dev.fd, gobject.IO_IN, keypress, ctx)
+
+

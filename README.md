@@ -9,3 +9,6 @@ For linux: sudo python Main.py<br/>
 For window: open cmd with adminastrator permission and then run python Main.py
 
 Now you device should detect computer as keyboard or gamepad.
+
+## Dependencies
+
